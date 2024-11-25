@@ -227,12 +227,14 @@ server <- function(input, output) {
   
     Men=subset(tmp,Gender==0)
     Women=subset(tmp,Gender==100)
-    out1<-data.frame(Variable=c("Age","Income","Training"),Type=c("Mean","Mean","% Received Training"),Group="Male Farmers",Sample=nrow(Men),
+    out1<-data.frame(Variable=c("Age","Income","Training"),Type=c("Mean","Mean","% Received Training"),
+                     Group="Male Farmers",Sample=nrow(Men),
                      Estimate=c(mean(Men$Age),mean(Men$Income),mean(Men$Training)),
                      SD=c(sd(Men$Age),
                           sd(Men$Income),
                           100*sqrt(mean(Men$Training/100)*(1-mean(Men$Training/100)))))
-    out2<-data.frame(Variable=c("Age","Income","Training"),Type=c("Mean","Mean","% Received Training"),Group="Female Farmers",Sample=nrow(Women),
+    out2<-data.frame(Variable=c("Age","Income","Training"),
+                     Type=c("Mean","Mean","% Received Training"),Group="Female Farmers",Sample=nrow(Women),
                      Estimate=c(mean(Women$Age),mean(Women$Income),mean(Women$Training)),
                      SD=c(sd(Women$Age),
                           sd(Women$Income),
@@ -247,7 +249,8 @@ server <- function(input, output) {
     out3$UCI=out3$Estimate+qt(0.975,as.numeric(as.character(input$Add10))-1)*out3$SE
     out3$UCI[out3$UCI>100&input$Variable=="Gender"|input$Variable=="Training"]<-100
     out3$LCI[out3$LCI<0&input$Variable=="Gender"|input$Variable=="Training"]<-0
-    colnames(out3)[6:9]<-c("Standard Deviation","Standard Error","95% Confidence Interval (Lower)","95% Confidence Interval (Upper)")
+    colnames(out3)[6:9]<-c("Standard Deviation","Standard Error",
+                           "95% Confidence Interval (Lower)","95% Confidence Interval (Upper)")
 
     }
     if(input$group=="Training"){
@@ -277,7 +280,8 @@ server <- function(input, output) {
       out3$UCI=out3$Estimate+qt(0.975,as.numeric(as.character(input$Add10))-1)*out3$SE
       out3$UCI[out3$UCI>100&input$Variable=="Gender"|input$Variable=="Training"]<-100
       out3$LCI[out3$LCI<0&input$Variable=="Gender"|input$Variable=="Training"]<-0
-      colnames(out3)[6:9]<-c("Standard Deviation","Standard Error","95% Confidence Interval (Lower)","95% Confidence Interval (Upper)")
+      colnames(out3)[6:9]<-c("Standard Deviation","Standard Error",
+                             "95% Confidence Interval (Lower)","95% Confidence Interval (Upper)")
       
     }
     out3
@@ -296,7 +300,8 @@ server <- function(input, output) {
                      SD=c(sd(Men$Age),
                           sd(Men$Income),
                           100*sqrt(mean(Men$Training/100)*(1-mean(Men$Training/100)))))
-    out2<-data.frame(Variable=c("Age","Income","Training"),Type=c("Mean","Mean","% Received Training"),Group="Female Farmers",Sample=nrow(Women),
+    out2<-data.frame(Variable=c("Age","Income","Training"),
+                     Type=c("Mean","Mean","% Received Training"),Group="Female Farmers",Sample=nrow(Women),
                      Estimate=c(mean(Women$Age),mean(Women$Income),mean(Women$Training)),
                      SD=c(sd(Women$Age),
                           sd(Women$Income),
@@ -306,13 +311,16 @@ server <- function(input, output) {
     out2$SE=sqrt((593-out2$Sample)/592)*out2$SD/sqrt(out2$Sample)
     
     out3<-rbind(out1,out2)
+    print(out3$Variable)
+    print(input$Variable)
     out3<- out3[out3$Variable==input$Variable,]
     out3$LCI=out3$Estimate-qt(0.975,as.numeric(as.character(input$Add10))-1)*out3$SE
     out3$UCI=out3$Estimate+qt(0.975,as.numeric(as.character(input$Add10))-1)*out3$SE
     out3$UCI[out3$UCI>100&input$Variable=="Gender"|input$Variable=="Training"]<-100
     out3$LCI[out3$LCI<0&input$Variable=="Gender"|input$Variable=="Training"]<-0
-    
-   p1<-ggplot(data=out3,aes(y=Estimate,x=Group,ymax=UCI,ymin=LCI))+geom_errorbar()+geom_point(aes(col=Group),size=5)+
+
+  
+   p1<-ggplot(data=out3,aes(y=Estimate,x=Group,ymax=UCI,ymin=LCI))+geom_errorbar(width=0.1)+geom_point(aes(col=Group),size=5)+
      xlab("Gender of Farmer")+ylab(paste("Estimate of",input$Variable))+
      theme(axis.title = element_text(size=14),title = element_text(size=18,face = "bold"),
            legend.text = element_text(size=14),legend.title = element_text(size=16,face="bold"),axis.text =element_text(size=14) )
@@ -345,7 +353,7 @@ server <- function(input, output) {
       out3$UCI[out3$UCI>100&input$Variable=="Gender"|input$Variable=="Training"]<-100
       out3$LCI[out3$LCI<0&input$Variable=="Gender"|input$Variable=="Training"]<-0
       
-      p1<-ggplot(data=out3,aes(y=Estimate,x=Group,ymax=UCI,ymin=LCI))+geom_errorbar()+geom_point(aes(col=Group),size=5)+
+      p1<-ggplot(data=out3,aes(y=Estimate,x=Group,ymax=UCI,ymin=LCI))+geom_errorbar(width=0.1)+geom_point(aes(col=Group),size=5)+
         xlab("Training Received?")+ylab(paste("Estimate of",input$Variable))+
         theme(axis.title = element_text(size=14),title = element_text(size=18,face = "bold"),
               legend.text = element_text(size=14),legend.title = element_text(size=16,face="bold"),axis.text =element_text(size=14) )
@@ -383,7 +391,7 @@ if(input$ciline==TRUE){
   
   p1<-p1+
     geom_errorbar(aes(ymax=upper,
-                      ymin=lower),col="red",linetype=2)
+                      ymin=lower),col="red",linetype=2,width=0.1)
 }
 if(input$fix==TRUE){
   p1<-p1+ylim(min(pdat[,input$Variable]),max(pdat[,input$Variable]))
@@ -523,7 +531,7 @@ new_plot
       p1<-ggplot(data=plt1,aes(y =percents,x=Training))+
         geom_point()+
         geom_errorbar(aes(ymax=upper,
-                          ymin=lower))+
+                          ymin=lower),width=0.1)+
         xlab("Gender of Farmer")+ylab("Number of Farmers")+ggtitle(paste("Farmers by GenderN=",nrow(sampledata())))+
         scale_y_continuous(labels=percent)+ylim(0,1)
     }
@@ -536,7 +544,7 @@ new_plot
       p1<-ggplot(data=plt1,aes(y =percents,x=Training))+
         geom_point()+
         geom_errorbar(aes(ymax=upper,
-                          ymin=lower))+
+                          ymin=lower),width=0.1)+
         xlab("Training Attended in Past 12 Months")+ylab("Number of Farmers")+ggtitle(paste("Farmers by Training AttendanceN=",nrow(sampledata())))+
         scale_y_continuous(labels=percent)+ylim(0,1)
     }   
@@ -548,7 +556,7 @@ new_plot
       p1<-ggplot(data=plt1,aes(y =mean,x=1))+
         geom_point()+
         geom_errorbar(aes(ymax=upper,
-                          ymin=lower))+
+                          ymin=lower),width=0.1)+
         xlab(" ")+ylab("Sales Income From Oranges")+ggtitle(paste("Sales Income From OrangesN=",nrow(sampledata())))+ylim(0,25000)
     }   
     if(input$Variable1=="Age"){
@@ -560,7 +568,7 @@ new_plot
       p1<-ggplot(data=plt1,aes(y =mean,x=1))+
         geom_point()+
         geom_errorbar(aes(ymax=upper,
-                          ymin=lower))+
+                          ymin=lower),width=0.1)+
         xlab(" ")+ylab("Age of Farmer")+ggtitle(paste("Age of FarmerN=",nrow(sampledata())))+ylim(0,25000)
     }  
    p2<- p1+
